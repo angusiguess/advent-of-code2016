@@ -46,16 +46,6 @@
            :y 0}
           directions))
 
-(defn granular-distance [directions]
-  (let [pairs (partition 2 1 directions)]
-    (reduce (fn [acc [first second]]
-              (let [x-one (:x first)
-                    x-two (:x second)
-                    y-one (:y first)
-                    y-two (:y second)]
-                (if (= x-one x-two) (conj acc (map (fn [y]
-                                                     [x-one y]) (range y-one y-two)))))) pairs)))
-
 (defn total-distance [{:keys [x y]}]
   (+ (Math/abs x) (Math/abs y)))
 

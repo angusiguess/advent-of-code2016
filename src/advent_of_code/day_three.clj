@@ -1,6 +1,8 @@
 (ns advent-of-code.day-three
   (:require [clojure.string :as str]))
 
+;; Oh boy, finally a problem that's shaped like transducers!
+
 (def test-input "  5 10 25  ")
 
 (defn read-triangle [line]
@@ -8,12 +10,14 @@
 
 (def read-triangles (map read-triangle))
 
+;; Can't map a static function raw, have to wrap it in an fn.
 (def parse-integers (map (fn [triangle]
                            (map #(Integer/parseInt %) triangle))))
 
 (def chunk-triangles (partition-all 3))
 
-(def rearrange-triangles (mapcat (fn [[[a1 b1 c1]
+;; This I love, like a declarative transpose
+(def transpose-triangles (mapcat (fn [[[a1 b1 c1]
                                        [a2 b2 c2]
                                        [a3 b3 c3]]]
                                    [[a1 a2 a3]
@@ -38,6 +42,6 @@
         valid-triangles (comp read-triangles
                               parse-integers
                               chunk-triangles
-                              rearrange-triangles
+                              transpose-triangles
                               valid-triangles)]
     (count (into [] valid-triangles lines))))

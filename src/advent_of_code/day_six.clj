@@ -610,7 +610,7 @@ pmympjrh")
                              (sort-by (comp - count)))]
         (print (first (first common-char)))))))
 
-(defn solve [input]
+(defn solve-two [input]
   (let [lines (str/split-lines input)]
     (dotimes [i 8]
       (let [common-char (->> lines

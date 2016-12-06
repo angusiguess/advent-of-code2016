@@ -13,8 +13,6 @@
         padding (apply str (repeat (- size (count sig)) "0"))]
     (str padding sig)))
 
-;; broken md5
-
 (defn key-sequence [key]
   (map (fn [n]
          (md5 (str/join [key (str n)])))))
@@ -28,7 +26,7 @@
          (re-find #"^00000([0-7])(.).*" hash))))
 
 (def password-character (filter (fn [match]
-                                  (seq match))))
+                                  (not (nil? match)))))
 
 
 ;; Okay why doesn't this work. I'm gonna just leak i/o

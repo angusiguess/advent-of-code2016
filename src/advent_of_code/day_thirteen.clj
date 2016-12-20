@@ -78,4 +78,4 @@
   (search {[1 1] 0} [7 4] fav))
 
 (defn solve-second [fav]
-  (bfs-three fav))
+  (bfs-two fav))

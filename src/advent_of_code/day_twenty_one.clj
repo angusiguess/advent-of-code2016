@@ -92,22 +92,35 @@
                       (drop pos-two de-indexed)))))
 
 (defn solve-one [word]
-  (let [input #_(-> "day_21.txt"
+  (let [input (-> "day_21.txt"
                   io/resource
                   io/file
                   slurp
-                  str/split-lines) test-input]
+                  str/split-lines)]
     (reduce (fn [acc x]
               (println acc x "->" (parse x acc))
               (parse x acc)) word input)))
+
+(defn permutations [s]
+  (lazy-seq
+   (if (seq (rest s))
+     (apply concat (for [x s]
+                     (map #(cons x %) (permutations (remove #{x} s)))))
+     [s])))
+
+(defn scramble [word input]
+  (reduce (fn [acc x]
+            (parse x acc)) word input))
 
 (defn solve-two [word]
   (let [input (-> "day_21.txt"
                   io/resource
                   io/file
                   slurp
-                  str/split-lines
-                  reverse)]
+                  str/split-lines)
+        perms (permutations word)]
     (reduce (fn [acc x]
-              (println acc x "->" (parse x acc))
-              (parse x acc)) word input)))
+              (when (zero? (mod acc 10000)) (println acc))
+              (let [answer (scramble (str/join x) input)]
+                (if (= answer word) (reduced (str/join x))
+                    (inc acc)))) 0 perms)))

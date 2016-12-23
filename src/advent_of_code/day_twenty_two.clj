@@ -125,13 +125,26 @@
     [(:x b) (:y b)]
     coord))
 
+(defn nearby-with-capacity [coords graph used distance path seen]
+  (into [] (comp (filter (fn [coord]
+                           (let [{:keys [size]} (get graph coord)]
+                             (<= used size))))
+                 (filter (fn [coord]
+                           (nil? (get seen coord))))
+                 (map (fn [coord]
+                        [(inc distance) coord (conj path coord)])))
+        (adjacent coords)))
+
 (defn shortest-path [graph start dest]
-  (loop [q [[0 [max-x 0] graph]]]
-    (let [[first & rest] q
-          [distance coord graph] first]
-      (cond (nil? first) 100000
-            (= coord dest) distance
-            :else (recur (into (vec rest) (next-states distance coord graph)))))))
+  (let [{:keys [used]} (get graph start)]
+    (loop [q [[0 start []]]
+           seen #{}]
+      (let [[first & rest] q
+            [distance coord path] first]
+        (cond (nil? first) nil
+              (= coord dest) first
+              :else (let [next-states (nearby-with-capacity coord graph used distance path seen)] (recur (into (vec rest) next-states)
+                                                                                                    (into seen (map second next-states)))))))))
 
 (defn enqueue [q moves dest]
   (reduce (fn [acc [dist coord g]]

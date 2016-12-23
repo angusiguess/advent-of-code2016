@@ -51,6 +51,22 @@
                    (map read-node))]
     nodes))
 
+(defn test-nodes []
+  (let [nodes (->> "Filesystem            Size  Used  Avail  Use%
+/dev/grid/node-x0-y0   10T    8T     2T   80%
+/dev/grid/node-x0-y1   11T    6T     5T   54%
+/dev/grid/node-x0-y2   32T   28T     4T   87%
+/dev/grid/node-x1-y0    9T    7T     2T   77%
+/dev/grid/node-x1-y1    8T    0T     8T    0%
+/dev/grid/node-x1-y2   11T    7T     4T   63%
+/dev/grid/node-x2-y0   10T    6T     4T   60%
+/dev/grid/node-x2-y1    9T    8T     1T   88%
+/dev/grid/node-x2-y2    9T    6T     3T   66%"
+                   str/split-lines
+                   (drop 1)
+                   (map read-node))]
+    nodes))
+
 (defn max-coords [nodes]
   [(apply max (map :x nodes))
    (apply max (map :y nodes))])
@@ -119,7 +135,11 @@
 
 (defn enqueue [q moves dest]
   (reduce (fn [acc [dist coord g]]
-            (assoc acc [dist coord g] (+ dist (shortest-path g coord dest))))
+            (let [[x y] coord
+                  [dx dy] dest]
+              (assoc acc [dist coord g] (+ dist
+                                           (Math/abs (- x dx))
+                                           (Math/abs (- y dy))))))
           q moves))
 
 (defn a* [graph start dest]

@@ -92,7 +92,6 @@
           with-depth (map (fn [[floor state]]
                             [floor (inc depth) state])
                           to-enqueue)]
-      (println priority)
       (cond (goal? state) [depth state]
             :else (recur (enqueue (dissoc q [floor depth state]) with-depth)
                          (into seen to-enqueue))))))

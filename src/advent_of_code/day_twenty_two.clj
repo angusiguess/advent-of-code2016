@@ -150,12 +150,13 @@
       (println pri)
       (cond (nil? first) nil
             (= coord dest) dist
-            :else (let [moves (map (fn [[a b]]
-                                     [(inc dist)
-                                      (move-coord coord a b)
-                                      (mv g [(:x a) (:y a)]
-                                          [(:x b) (:y b)])])
-                                   (viable-adjacent-pairs (vals g)))]
+            :else (let [moves (->> (viable-adjacent-pairs (vals g))
+                                   (map (fn [[a b]]
+                                          [(inc dist)
+                                           (move-coord coord a b)
+                                           (mv g [(:x a) (:y a)]
+                                               [(:x b) (:y b)])]))
+                                   (filter (fn [x] (nil? (get x seen)))))]
                     (recur (-> q
                                (enqueue moves dest)
                                (dissoc tuple))

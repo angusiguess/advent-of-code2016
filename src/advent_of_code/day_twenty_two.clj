@@ -135,7 +135,7 @@
                         [(inc distance) coord (conj path coord)])))
         (adjacent coords)))
 
-(defn shortest-path [graph start dest]
+(defn shortest-path-capacity [graph start dest]
   (let [{:keys [used]} (get graph start)]
     (loop [q [[0 start []]]
            seen #{}]
@@ -144,33 +144,51 @@
         (cond (nil? first) nil
               (= coord dest) first
               :else (let [next-states (nearby-with-capacity coord graph used distance path seen)] (recur (into (vec rest) next-states)
-                                                                                                    (into seen (map second next-states)))))))))
+                                                                                                         (into seen (map second next-states)))))))))
 
-(defn enqueue [q moves dest]
-  (reduce (fn [acc [dist coord g]]
-            (let [[x y] coord
-                  [dx dy] dest]
-              (assoc acc [dist coord g] (+ dist
-                                           (Math/abs (- x dx))
-                                           (Math/abs (- y dy))))))
-          q moves))
+;; Someone else's used goes to that avail
+;; adj to empty, used needs to go to size
 
-(defn a* [graph start dest]
-  (loop [q (pm/priority-map [0 start graph] (shortest-path graph start dest))
-         seen #{}]
-    (let [[first & rest] (seq q)
-          [[dist coord g :as tuple] pri] first]
-      (println pri)
+;; Each node should have graph, coord, path.
+
+(defn nearby-moves [graph coord path seen]
+  (let [available (get-in graph [coord :avail])]
+    (into [] (comp (filter (fn [c]
+                             (<= (get-in graph [c :used])
+                                       available)))
+                   (filter (fn [c] (nil? (get seen c))))
+                   (map (fn [c] [(mv graph c coord)
+                                 c
+                                 (conj path c)])))
+          (adjacent coord))))
+
+(defn open-to-path [graph start dest seen]
+  (loop [q [[graph start []]]
+         seen seen]
+    (let [[first & rest] q
+          [g coord path] first]
       (cond (nil? first) nil
-            (= coord dest) dist
-            :else (let [moves (->> (viable-adjacent-pairs (vals g))
-                                   (map (fn [[a b]]
-                                          [(inc dist)
-                                           (move-coord coord a b)
-                                           (mv g [(:x a) (:y a)]
-                                               [(:x b) (:y b)])]))
-                                   (filter (fn [x] (nil? (get x seen)))))]
-                    (recur (-> q
-                               (enqueue moves dest)
-                               (dissoc tuple))
-                           (into seen moves)))))))
+            (= coord dest) first
+            :else (let [next-states (nearby-moves g coord path seen)]
+                    (recur (into (vec rest) next-states)
+                           (into seen (map second next-states))))))))
+
+;; Okay, 26 12 is the closest in our case, so we can just walk the path
+;; to each node on the path and see if that works
+
+(defn solve-two [graph start dest]
+  (let [available-path (last (shortest-path-capacity graph start dest))
+        empty-cell [26 12]]
+    (reduce (fn [{:keys [empty-cell g last-coord] :as acc} coord]
+              (let [[g coord path] (open-to-path g empty-cell coord #{last-coord})]
+                (println path)
+                (-> acc
+                    (update :steps + (count path))
+                    (assoc :g (mv g last-coord coord))
+                    (update :steps inc)
+                    (assoc :empty-cell last-coord)
+                    (assoc :last-coord coord))))
+            {:steps 0
+             :g graph
+             :empty-cell empty-cell
+             :last-coord start} available-path)))

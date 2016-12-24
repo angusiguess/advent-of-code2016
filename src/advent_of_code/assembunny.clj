@@ -6,11 +6,13 @@
 
 (def dec-matcher #"(dec) ([a-d])")
 
+(def mul-matcher #"(mul) ([a-d]) ([a-d]|\d+)")
+
 (def jnz-matcher #"(jnz) ([a-d]|\d+) ([a-d]|-?\d+)")
 
 (def tgl-matcher #"(tgl) ([a-d]|\d+)")
 
-(def opcode-matcher #"(cpy|inc|dec|jnz|tgl)")
+(def opcode-matcher #"(cpy|inc|dec|jnz|tgl|mul|nop)")
 
 (def match-register #"[a-d]")
 
@@ -27,9 +29,16 @@
   (let [[_ _ a1 a2] (re-find copy-matcher s)]
     {:opcode :cpy :arg1 (register-or-number a1) :arg2 (register-or-number a2)}))
 
+(defmethod read-instruction "nop" [s]
+  {:opcode :nop})
+
 (defmethod read-instruction "inc" [s]
   (let [[_ _ r] (re-find inc-matcher s)]
     {:opcode :inc :arg1 (register-or-number r)}))
+
+(defmethod read-instruction "mul" [s]
+  (let [[_ _ a1 a2] (re-find mul-matcher s)]
+    {:opcode :mul :arg1 (register-or-number a1) :arg2 (register-or-number a2)}))
 
 (defmethod read-instruction "dec" [s]
   (let [[_ _ r] (re-find dec-matcher s)]
@@ -45,6 +54,9 @@
 
 (defmulti exec-instruction (fn [env instruction] (:opcode instruction)))
 
+(defmethod exec-instruction :nop [env instruction]
+  (update env :pc inc))
+
 (defmethod exec-instruction :cpy [env instruction]
   (let [{:keys [arg1 arg2]} instruction
         arg1 (if (number? arg1) arg1 (get env arg1))]
@@ -57,6 +69,13 @@
     (-> env
         (update :pc inc)
         (update arg1 inc))))
+
+(defmethod exec-instruction :mul [env instruction]
+  (let [{:keys [arg1 arg2]} instruction
+        arg2 (if (number? arg2) arg2 (get env arg2))]
+    (-> env
+        (update :pc inc)
+        (update arg1 * arg2))))
 
 (defmethod exec-instruction :dec [env instruction]
   (let [{:keys [arg1]} instruction]

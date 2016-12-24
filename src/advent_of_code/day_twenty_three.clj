@@ -43,5 +43,6 @@
     (loop [env {:pc 0 :a 12 :b 0 :c 0 :d 0 :instructions instructions}]
       (if-let [next-instruction (get-in env [:instructions (:pc env)])]
         (do
+
           (recur (asb/exec-instruction env next-instruction)))
         env))))

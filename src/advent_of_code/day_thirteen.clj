@@ -72,10 +72,3 @@
                      (reduce (fn [acc coord]
                                (if (get acc coord) acc
                                    (assoc acc coord (inc (get distances first))))) distances valid)))))))
-
-
-(defn solve-first [fav]
-  (search {[1 1] 0} [7 4] fav))
-
-(defn solve-second [fav]
-  (bfs-two fav))

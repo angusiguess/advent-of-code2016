@@ -12,7 +12,9 @@
 
 (def tgl-matcher #"(tgl) ([a-d]|\d+)")
 
-(def opcode-matcher #"(cpy|inc|dec|jnz|tgl|mul|nop)")
+(def out-matcher #"(out) ([a-d]|-?\d+)")
+
+(def opcode-matcher #"(cpy|inc|dec|jnz|tgl|mul|nop|out)")
 
 (def match-register #"[a-d]")
 
@@ -52,6 +54,10 @@
   (let [[_ _ a1] (re-find tgl-matcher s)]
     {:opcode :tgl :arg1 (register-or-number a1)}))
 
+(defmethod read-instruction "out" [s]
+  (let [[_ _ a1] (re-find out-matcher s)]
+    {:opcode :out :arg1 (register-or-number a1)}))
+
 (defmulti exec-instruction (fn [env instruction] (:opcode instruction)))
 
 (defmethod exec-instruction :nop [env instruction]
@@ -82,6 +88,13 @@
     (-> env
         (update :pc inc)
         (update arg1 dec))))
+
+(defmethod exec-instruction :out [env instruction]
+  (let [{:keys [arg1]} instruction
+        arg1 (if (number? arg1) arg1 (get env arg1))]
+    (-> env
+        (update :pc inc)
+        (update :out conj arg1))))
 
 (defmethod exec-instruction :jnz [env instruction]
   (let [{:keys [arg1 arg2]} instruction

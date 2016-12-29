@@ -34,7 +34,6 @@
 (defn solve-one []
   (let [nodes (->> "day_22.txt"
                    io/resource
-                   io/file
                    slurp
                    str/split-lines
                    (drop 2)
@@ -44,7 +43,6 @@
 (defn nodes []
   (let [nodes (->> "day_22.txt"
                    io/resource
-                   io/file
                    slurp
                    str/split-lines
                    (drop 2)

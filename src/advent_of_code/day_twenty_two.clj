@@ -73,11 +73,6 @@
 
 (def max-y 29)
 
-(defn goal-data [nodes]
-  (first (filter (fn [{:keys [x y]}]
-             (and (= x max-x)
-                  (= y max-y))) nodes)))
-
 (defn build-graph [nodes]
   (reduce (fn [acc {:keys [x y] :as node}]
             (assoc acc [x y] node)) {} nodes))
@@ -85,12 +80,13 @@
 (defn has-capacity? [{:keys [avail]} capacity]
   (<= capacity avail))
 
-(def adjacent (memoize (fn [[x y]]
-                         (filter (fn [[x y]]
-                                   (and (nat-int? x) (nat-int? y)
-                                        (>= max-x x) (>= max-y y)))
-                                 [[(inc x) y] [(dec x) y]
-                                  [x (inc y)] [x (dec y)]]))))
+(def adjacent
+  (memoize (fn [[x y]]
+             (filter (fn [[x y]]
+                       (and (nat-int? x) (nat-int? y)
+                            (>= max-x x) (>= max-y y)))
+                     [[(inc x) y] [(dec x) y]
+                      [x (inc y)] [x (dec y)]]))))
 
 (defn mv [graph n1 n2]
   (let [used (get-in graph [n1 :used])
